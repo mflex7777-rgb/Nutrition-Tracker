@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nutrition Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f2eb; --bg2: #edeae1; --surface: #ffffff;
+      --border: #d8d4c8; --border2: #c5c0b0;
+      --text: #1a1814; --text2: #6b6760; --text3: #9e9a93;
+      --accent: #2d4a2d; --accent-light: #e8f0e8; --accent-text: #1a3020;
+      --danger: #8b2a2a; --danger-light: #f5e8e8;
+      --warn-bg: #fffbeb; --warn-border: #f0d080; --warn-text: #7a5c00;
+      --mono: 'DM Mono', monospace; --display: 'Syne', sans-serif;
+    }
+    body { font-family: var(--display); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    .header { background: var(--accent); padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+    .header::before { content:''; position:absolute; top:-40px; right:-40px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.04); }
+    .header::after  { content:''; position:absolute; bottom:-60px; left:10%; width:300px; height:300px; border-radius:50%; background:rgba(255,255,255,0.03); }
+    .header-inner { max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+    .header-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 10px; }
+    .header-title { font-size: clamp(28px, 5vw, 42px); font-weight: 700; color: #fff; line-height: 1.1; letter-spacing: -0.02em; }
+    .header-title span { color: rgba(255,255,255,0.45); }
+    .header-sub { margin-top: 10px; font-size: 14px; color: rgba(255,255,255,0.5); }
+
+    .main { max-width: 800px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+    .card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text2); }
+
+    .unit-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .unit-toggle button { padding: 5px 14px; font-family: var(--mono); font-size: 12px; border: none; background: transparent; color: var(--text3); cursor: pointer; transition: all 0.15s; }
+    .unit-toggle button.active { background: var(--accent); color: #fff; }
+
+    .col-headers { display: grid; grid-template-columns: 1fr 120px 36px; gap: 8px; margin-bottom: 6px; padding: 0 2px; }
+    .col-lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); }
+    .col-lbl.r { text-align: right; }
+
+    .food-row { display: grid; grid-template-columns: 1fr 120px 36px; gap: 8px; margin-bottom: 8px; align-items: center; animation: slideIn 0.2s ease; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+    input[type="text"], input[type="number"] {
+      width: 100%; height: 40px; padding: 0 12px;
+      font-family: var(--display); font-size: 14px; color: var(--text);
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      outline: none; transition: border-color 0.15s, background 0.15s;
+    }
+    input[type="text"]:focus, input[type="number"]:focus { border-color: var(--accent); background: var(--surface); }
+    input[type="number"] { text-align: right; font-family: var(--mono); padding-right: 28px; }
+    input::placeholder { color: var(--text3); }
+
+    .qty-wrap { position: relative; display: flex; align-items: center; }
+    .qty-unit { position: absolute; right: 10px; font-family: var(--mono); font-size: 11px; color: var(--text3); pointer-events: none; }
+
+    .remove-btn { width:36px; height:36px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text3); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+    .remove-btn:hover { background:var(--danger-light); border-color:var(--danger); color:var(--danger); }
+
+    .add-btn { width:100%; height:40px; margin-top:4px; font-family:var(--mono); font-size:12px; letter-spacing:0.06em; border:1px dashed var(--border2); border-radius:8px; background:transparent; color:var(--text2); cursor:pointer; transition:all 0.15s; }
+    .add-btn:hover { background:var(--bg2); border-color:var(--accent); color:var(--accent); }
+
+    .lookup-btn { display:inline-flex; align-items:center; gap:8px; padding:0 24px; height:48px; font-family:var(--display); font-size:15px; font-weight:600; background:var(--accent); color:#fff; border:none; border-radius:10px; cursor:pointer; transition:all 0.2s; }
+    .lookup-btn:hover { background:#1e3a1e; transform:translateY(-1px); }
+    .lookup-btn:active { transform:translateY(0); }
+    .lookup-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+    .lookup-btn .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:none; }
+    .lookup-btn.loading .spinner { display:block; }
+    .lookup-btn.loading .btn-text { display:none; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .error-msg { margin-top:10px; padding:10px 14px; background:var(--danger-light); border:1px solid #e8c0c0; border-radius:8px; font-family:var(--mono); font-size:12px; color:var(--danger); display:none; }
+
+    #results-section { display:none; animation:fadeUp 0.35s ease; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+    .totals-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:1.25rem; }
+    .total-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+    .total-card.featured { background:var(--accent-light); border-color:#b8d0b8; }
+    .total-lbl { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); margin-bottom:6px; }
+    .total-val { font-family:var(--mono); font-size:26px; font-weight:500; color:var(--text); line-height:1; }
+    .total-unit { font-size:13px; color:var(--text3); margin-left:2px; }
+
+    .results-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .results-table th { padding:8px 10px; text-align:left; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); border-bottom:1px solid var(--border); white-space:nowrap; }
+    .results-table th.r { text-align:right; }
+    .results-table td { padding:10px; border-bottom:1px solid var(--bg2); color:var(--text); vertical-align:top; }
+    .results-table td.r { text-align:right; font-family:var(--mono); font-size:13px; color:var(--text2); }
+    .food-name { font-weight:500; }
+    .matched-name { font-size:11px; color:var(--text3); margin-top:2px; font-family:var(--mono); }
+    .usda-badge { display:inline-block; font-family:var(--mono); font-size:10px; padding:1px 6px; background:var(--accent-light); color:var(--accent-text); border-radius:4px; margin-top:3px; }
+    .not-found-row td { color: var(--text3); font-style: italic; }
+    .results-table .total-row td { font-weight:600; border-bottom:none; border-top:1px solid var(--border); background:var(--accent-light); color:var(--accent-text); }
+    .results-table .total-row td.r { font-family:var(--mono); color:var(--accent-text); }
+
+    .source-note { margin-top:12px; font-family:var(--mono); font-size:11px; color:var(--text3); text-align:center; }
+    .source-note a { color:var(--accent); text-decoration:none; }
+    .source-note a:hover { text-decoration:underline; }
+
+    @media (max-width:560px) {
+      .totals-grid { grid-template-columns:1fr 1fr; }
+      .col-headers, .food-row { grid-template-columns:1fr 90px 36px; }
+      .results-table th:nth-child(2), .results-table td:nth-child(2) { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <p class="header-eyebrow">Data from USDA FoodData Central</p>
+    <h1 class="header-title">Nutrition <span>Tracker</span></h1>
+    <p class="header-sub">Enter your foods and quantities — get verified calories, protein &amp; fiber.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Food Items</span>
+      <div class="unit-toggle">
+        <button class="active" id="btn-g" onclick="setUnit('g')">Grams</button>
+        <button id="btn-oz" onclick="setUnit('oz')">Oz</button>
+      </div>
+    </div>
+    <div class="col-headers">
+      <span class="col-lbl">Food name</span>
+      <span class="col-lbl r" id="qty-col-lbl">Quantity (g)</span>
+      <span></span>
+    </div>
+    <div id="food-rows"></div>
+    <button class="add-btn" onclick="addRow()">+ Add food item</button>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.25rem;">
+    <button class="lookup-btn" id="lookup-btn" onclick="lookupNutrition()">
+      <span class="btn-text">Look up nutrition</span>
+      <div class="spinner"></div>
+    </button>
+  </div>
+  <div class="error-msg" id="error-msg"></div>
+
+  <div id="results-section">
+    <div class="card">
+      <div class="card-header" style="margin-bottom:1rem;">
+        <span class="card-title">Totals</span>
+      </div>
+      <div class="totals-grid" id="totals-grid"></div>
+    </div>
+    <div class="card">
+      <div class="card-header" style="margin-bottom:1rem;">
+        <span class="card-title">Breakdown</span>
+      </div>
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Food</th>
+            <th class="r">Qty</th>
+            <th class="r">Calories</th>
+            <th class="r">Protein</th>
+            <th class="r">Fiber</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+      <p class="source-note">Data sourced from <a href="https://fdc.nal.usda.gov/" target="_blank">USDA FoodData Central</a> — Foundation &amp; SR Legacy datasets.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let unit = 'g', rowId = 0, rows = [];
+
+  function setUnit(u) {
+    unit = u;
+    document.getElementById('btn-g').classList.toggle('active', u === 'g');
+    document.getElementById('btn-oz').classList.toggle('active', u === 'oz');
+    document.getElementById('qty-col-lbl').textContent = u === 'g' ? 'Quantity (g)' : 'Quantity (oz)';
+    rows.forEach(r => { const el = document.getElementById('unit-' + r.id); if (el) el.textContent = u; });
+  }
+
+  function addRow(name = '', qty = '') {
+    const id = ++rowId;
+    rows.push({ id });
+    const div = document.createElement('div');
+    div.className = 'food-row';
+    div.id = 'row-' + id;
+    div.innerHTML = `
+      <input type="text" id="name-${id}" placeholder="e.g. chicken breast" value="${name}" />
+      <div class="qty-wrap">
+        <input type="number" id="qty-${id}" min="0" step="any" placeholder="0" value="${qty}" />
+        <span class="qty-unit" id="unit-${id}">${unit}</span>
+      </div>
+      <button class="remove-btn" onclick="removeRow(${id})" title="Remove">×</button>
+    `;
+    document.getElementById('food-rows').appendChild(div);
+  }
+
+  function removeRow(id) {
+    rows = rows.filter(r => r.id !== id);
+    document.getElementById('row-' + id)?.remove();
+  }
+
+  function getItems() {
+    return rows.map(r => {
+      const name = (document.getElementById('name-' + r.id)?.value || '').trim();
+      const qtyRaw = parseFloat(document.getElementById('qty-' + r.id)?.value) || 0;
+      const qtyG = unit === 'oz' ? qtyRaw * 28.3495 : qtyRaw;
+      return { name, qtyRaw, qtyG };
+    }).filter(i => i.name && i.qtyRaw > 0);
+  }
+
+  async function lookupNutrition() {
+    const items = getItems();
+    const btn = document.getElementById('lookup-btn');
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+
+    if (!items.length) {
+      errEl.textContent = 'Please add at least one food item with a quantity.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    document.getElementById('results-section').style.display = 'none';
+
+    try {
+      const res = await fetch('/api/nutrition', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Unknown error');
+      renderResults(items, data.results);
+    } catch (e) {
+      errEl.textContent = 'Something went wrong: ' + e.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+  }
+
+  function renderResults(items, results) {
+    let totalCal = 0, totalPro = 0, totalFib = 0;
+    const tbody = document.getElementById('results-body');
+    tbody.innerHTML = '';
+
+    results.forEach((r, i) => {
+      const qtyDisplay = unit === 'oz'
+        ? items[i].qtyRaw.toFixed(1) + ' oz'
+        : items[i].qtyG.toFixed(0) + ' g';
+
+      if (r.error || r.calories == null) {
+        const tr = document.createElement('tr');
+        tr.className = 'not-found-row';
+        tr.innerHTML = `
+          <td><span class="food-name">${r.name}</span><div class="matched-name">Not found in USDA database — try a simpler name</div></td>
+          <td class="r">${qtyDisplay}</td>
+          <td class="r">—</td><td class="r">—</td><td class="r">—</td>
+        `;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      totalCal += r.calories;
+      totalPro += r.protein_g;
+      totalFib += r.fiber_g;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <span class="food-name">${r.name}</span>
+          <div class="matched-name">${r.matchedName}</div>
+          <span class="usda-badge">${r.dataType}</span>
+        </td>
+        <td class="r">${qtyDisplay}</td>
+        <td class="r">${r.calories} kcal</td>
+        <td class="r">${r.protein_g} g</td>
+        <td class="r">${r.fiber_g} g</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const totalRow = document.createElement('tr');
+    totalRow.className = 'total-row';
+    totalRow.innerHTML = `
+      <td>Total</td><td></td>
+      <td class="r">${Math.round(totalCal)} kcal</td>
+      <td class="r">${totalPro.toFixed(1)} g</td>
+      <td class="r">${totalFib.toFixed(1)} g</td>
+    `;
+    tbody.appendChild(totalRow);
+
+    document.getElementById('totals-grid').innerHTML = `
+      <div class="total-card featured">
+        <p class="total-lbl">Calories</p>
+        <p class="total-val">${Math.round(totalCal)}<span class="total-unit">kcal</span></p>
+      </div>
+      <div class="total-card">
+        <p class="total-lbl">Protein</p>
+        <p class="total-val">${totalPro.toFixed(1)}<span class="total-unit">g</span></p>
+      </div>
+      <div class="total-card">
+        <p class="total-lbl">Fiber</p>
+        <p class="total-val">${totalFib.toFixed(1)}<span class="total-unit">g</span></p>
+      </div>
+    `;
+
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('results-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  addRow(); addRow();
+</script>
+</body>
+</html>
