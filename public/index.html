@@ -15,7 +15,6 @@
       --text: #1a1814; --text2: #6b6760; --text3: #9e9a93;
       --accent: #2d4a2d; --accent-light: #e8f0e8; --accent-text: #1a3020;
       --danger: #8b2a2a; --danger-light: #f5e8e8;
-      --warn-bg: #fffbeb; --warn-border: #f0d080; --warn-text: #7a5c00;
       --mono: 'DM Mono', monospace; --display: 'Syne', sans-serif;
     }
     body { font-family: var(--display); background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -87,25 +86,18 @@
     .total-unit { font-size:13px; color:var(--text3); margin-left:2px; }
 
     .results-table { width:100%; border-collapse:collapse; font-size:13px; }
-    .results-table th { padding:8px 10px; text-align:left; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); border-bottom:1px solid var(--border); white-space:nowrap; }
+    .results-table th { padding:8px 10px; text-align:left; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text3); border-bottom:1px solid var(--border); }
     .results-table th.r { text-align:right; }
-    .results-table td { padding:10px; border-bottom:1px solid var(--bg2); color:var(--text); vertical-align:top; }
+    .results-table td { padding:10px; border-bottom:1px solid var(--bg2); color:var(--text); }
     .results-table td.r { text-align:right; font-family:var(--mono); font-size:13px; color:var(--text2); }
-    .food-name { font-weight:500; }
-    .matched-name { font-size:11px; color:var(--text3); margin-top:2px; font-family:var(--mono); }
-    .usda-badge { display:inline-block; font-family:var(--mono); font-size:10px; padding:1px 6px; background:var(--accent-light); color:var(--accent-text); border-radius:4px; margin-top:3px; }
-    .not-found-row td { color: var(--text3); font-style: italic; }
+    .results-table .food-name { font-weight:500; }
     .results-table .total-row td { font-weight:600; border-bottom:none; border-top:1px solid var(--border); background:var(--accent-light); color:var(--accent-text); }
     .results-table .total-row td.r { font-family:var(--mono); color:var(--accent-text); }
-
-    .source-note { margin-top:12px; font-family:var(--mono); font-size:11px; color:var(--text3); text-align:center; }
-    .source-note a { color:var(--accent); text-decoration:none; }
-    .source-note a:hover { text-decoration:underline; }
+    .results-note { margin-top:12px; font-family:var(--mono); font-size:11px; color:var(--text3); text-align:center; }
 
     @media (max-width:560px) {
       .totals-grid { grid-template-columns:1fr 1fr; }
       .col-headers, .food-row { grid-template-columns:1fr 90px 36px; }
-      .results-table th:nth-child(2), .results-table td:nth-child(2) { display:none; }
     }
   </style>
 </head>
@@ -113,14 +105,13 @@
 
 <div class="header">
   <div class="header-inner">
-    <p class="header-eyebrow">Data from USDA FoodData Central</p>
+    <p class="header-eyebrow">Powered by Claude AI</p>
     <h1 class="header-title">Nutrition <span>Tracker</span></h1>
-    <p class="header-sub">Enter your foods and quantities — get verified calories, protein &amp; fiber.</p>
+    <p class="header-sub">Enter your foods and quantities — get calories, protein &amp; fiber instantly.</p>
   </div>
 </div>
 
 <div class="main">
-
   <div class="card">
     <div class="card-header">
       <span class="card-title">Food Items</span>
@@ -160,19 +151,14 @@
       <table class="results-table">
         <thead>
           <tr>
-            <th>Food</th>
-            <th class="r">Qty</th>
-            <th class="r">Calories</th>
-            <th class="r">Protein</th>
-            <th class="r">Fiber</th>
+            <th>Food</th><th class="r">Qty</th><th class="r">Calories</th><th class="r">Protein</th><th class="r">Fiber</th>
           </tr>
         </thead>
         <tbody id="results-body"></tbody>
       </table>
-      <p class="source-note">Data sourced from <a href="https://fdc.nal.usda.gov/" target="_blank">USDA FoodData Central</a> — Foundation &amp; SR Legacy datasets.</p>
+      <p class="results-note">Values are estimates based on typical nutritional data.</p>
     </div>
   </div>
-
 </div>
 
 <script>
@@ -257,37 +243,19 @@
     tbody.innerHTML = '';
 
     results.forEach((r, i) => {
-      const qtyDisplay = unit === 'oz'
-        ? items[i].qtyRaw.toFixed(1) + ' oz'
-        : items[i].qtyG.toFixed(0) + ' g';
-
-      if (r.error || r.calories == null) {
-        const tr = document.createElement('tr');
-        tr.className = 'not-found-row';
-        tr.innerHTML = `
-          <td><span class="food-name">${r.name}</span><div class="matched-name">Not found in USDA database — try a simpler name</div></td>
-          <td class="r">${qtyDisplay}</td>
-          <td class="r">—</td><td class="r">—</td><td class="r">—</td>
-        `;
-        tbody.appendChild(tr);
-        return;
-      }
-
       totalCal += r.calories;
       totalPro += r.protein_g;
       totalFib += r.fiber_g;
-
+      const qtyDisplay = unit === 'oz'
+        ? items[i].qtyRaw.toFixed(1) + ' oz'
+        : items[i].qtyG.toFixed(0) + ' g';
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>
-          <span class="food-name">${r.name}</span>
-          <div class="matched-name">${r.matchedName}</div>
-          <span class="usda-badge">${r.dataType}</span>
-        </td>
+        <td class="food-name">${r.name}</td>
         <td class="r">${qtyDisplay}</td>
-        <td class="r">${r.calories} kcal</td>
-        <td class="r">${r.protein_g} g</td>
-        <td class="r">${r.fiber_g} g</td>
+        <td class="r">${Math.round(r.calories)} kcal</td>
+        <td class="r">${r.protein_g.toFixed(1)} g</td>
+        <td class="r">${r.fiber_g.toFixed(1)} g</td>
       `;
       tbody.appendChild(tr);
     });
