@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   const itemLines = items.map(i => `- ${i.name}: ${i.qtyG.toFixed(1)}g`).join('\n');
-  const prompt = `You are a nutrition database. For the following foods and gram weights, return ONLY a JSON array with no markdown, code fences, or explanation. Each object must have exactly these keys: {"name": string, "calories": number, "protein_g": number, "fiber_g": number}. Use typical/average nutritional values per 100g scaled to the given weight. Foods:\n${itemLines}`;
+  const prompt = `You are a nutrition database. For the following foods and gram weights, return ONLY a JSON array with no markdown, code fences, or explanation. Each object must have exactly these keys: {"name": string, "calories": number, "protein_g": number, "fiber_g": number}. Use typical/average nutritional values per 100g scaled to the given weight. Assume all foods are in their cooked or prepared state unless the name clearly indicates otherwise (e.g. "raw oats", "raw carrot"). Foods:\n${itemLines}`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
