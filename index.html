@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nutrition Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <p class="eyebrow">Powered by Claude</p>
+      <h1>Nutrition Tracker</h1>
+      <p class="lede">Enter your foods and quantities — get calories, protein and fiber back in seconds.</p>
+    </header>
+
+    <section class="card">
+      <div class="unit-toggle" role="group" aria-label="Quantity unit">
+        <button type="button" class="unit-btn is-active" data-unit="g">Grams</button>
+        <button type="button" class="unit-btn" data-unit="oz">Ounces</button>
+      </div>
+
+      <div class="items" id="items"></div>
+
+      <button type="button" class="add-item-btn" id="addItem">+ Add a food item</button>
+
+      <button type="button" class="primary-btn" id="lookupBtn">Look up nutrition</button>
+
+      <p class="error-banner" id="errorBanner" hidden></p>
+    </section>
+
+    <section class="card results" id="results" hidden>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab-btn is-active" data-tab="totals" role="tab">Totals</button>
+        <button type="button" class="tab-btn" data-tab="breakdown" role="tab">Breakdown</button>
+      </div>
+
+      <div class="tab-panel" id="totalsPanel">
+        <div class="totals-grid">
+          <div class="totals-figure">
+            <span class="totals-number" id="totalCalories">0</span>
+            <span class="totals-label">calories</span>
+          </div>
+          <div class="totals-figure">
+            <span class="totals-number" id="totalProtein">0g</span>
+            <span class="totals-label">protein</span>
+          </div>
+          <div class="totals-figure">
+            <span class="totals-number" id="totalFiber">0g</span>
+            <span class="totals-label">fiber</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="breakdownPanel" hidden>
+        <table class="breakdown-table">
+          <thead>
+            <tr>
+              <th>Food</th>
+              <th>Qty</th>
+              <th>Calories</th>
+              <th>Protein</th>
+              <th>Fiber</th>
+            </tr>
+          </thead>
+          <tbody id="breakdownBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="disclaimer">Values are estimates based on typical nutritional data.</p>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

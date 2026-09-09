@@ -1,42 +1,22 @@
-# Nutrition Tracker v2
+# Nutrition Tracker
 
-Nutrition lookup tool powered by the USDA FoodData Central database.
+A small tool that estimates calories, protein, and fiber for a list of foods, using Claude.
 
-## Project Structure
+## Files
 
-```
-nutrition-tracker/
-├── public/
-│   ├── index.html                  # Main frontend (uses /api/nutrition)
-│   └── nutrition-tracker-test.html # Standalone test (uses USDA DEMO_KEY directly)
-├── api/
-│   └── nutrition.js                # Vercel serverless function
-├── vercel.json
-└── README.md
-```
+- `index.html`, `style.css`, `script.js` — the page you see in your browser.
+- `api/nutrition.js` — runs on Vercel's servers (not in the browser). It receives your food list, asks Claude for nutrition estimates, and sends the answer back. Your Anthropic API key lives here, on the server, never in the browser.
 
-## Deploy to Vercel
+## Why this version won't break like the old one did
 
-### 1. Push to GitHub
-Create a new repo and push this project folder.
+The old app had a specific model name (like `claude-sonnet-4-20250514`) typed directly into the code. When Anthropic retires that exact model, the app breaks, because it's still asking for something that no longer exists.
 
-### 2. Import to Vercel
-- Go to vercel.com → Add New Project → Import your repo
-- Leave all build settings as default → click Deploy
+This version asks Anthropic's API "what's the current Sonnet model?" every time someone uses the tool, and uses whatever the answer is. So when Anthropic ships a new model, you don't need to change anything — the app picks it up automatically on the next lookup.
 
-### 3. Add your USDA API Key (free)
-The tool works with DEMO_KEY but it's rate-limited. Get a free dedicated key:
-- Go to: https://fdc.nal.usda.gov/api-key-signup/
-- Sign up with your email — the key is emailed to you instantly
-- In Vercel: Settings → Environment Variables → Add:
-  - Name:  `USDA_API_KEY`
-  - Value: your key
+## Environment variable you must set in Vercel
 
-### 4. Redeploy
-Deployments → three dots → Redeploy
+| Name | Value |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Your API key from [console.anthropic.com](https://console.anthropic.com/settings/keys) |
 
----
-
-## Testing locally
-Open `public/nutrition-tracker-test.html` directly in your browser — no server needed.
-It calls the USDA API directly using DEMO_KEY (free, no signup required for testing).
+See the deployment steps for exactly where to enter this.
